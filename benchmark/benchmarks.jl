@@ -1,4 +1,11 @@
+import Pkg
+
+Pkg.activate(@__DIR__)
+Pkg.instantiate()
+Pkg.status()
+
 using BenchmarkTools
+
 SUITE = BenchmarkGroup()
 for file in readdir(@__DIR__)
     if startswith(file, "bench_") && endswith(file, ".jl")
