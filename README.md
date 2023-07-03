@@ -3,7 +3,7 @@
 A package for generating benchmark and test reports for
 [TensorInference.jl](https://github.com/TensorBFS/TensorInference.jl).
 
-[![Build Status](https://github.com/TensorBFS/TensorInferenceBenchmarks.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/TensorBFS/TensorInferenceBenchmarks.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![CI](https://github.com/TensorBFS/TensorInferenceBenchmarks.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/TensorBFS/TensorInferenceBenchmarks.jl/actions/workflows/CI.yml)
 
 # Benchmarks
 
