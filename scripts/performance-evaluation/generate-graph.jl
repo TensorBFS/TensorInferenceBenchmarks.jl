@@ -26,8 +26,6 @@ push!(
 \\definecolor{c06}{HTML}{AA3377}
 \\definecolor{c07}{HTML}{BBBBBB}
 \\definecolor{c08}{HTML}{BBBBBB}
-\\usepackage{fontsetup}
-\\setmonofont{Hack}
 """
 )
 
