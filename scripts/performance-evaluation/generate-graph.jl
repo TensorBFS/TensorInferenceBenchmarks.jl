@@ -5,7 +5,7 @@
 # - https://davidmathlogic.com/colorblind
 # - https://www.color-hex.com/color-palette/1018347
 
-using PGFPlotsX, CSV, DataFrames, Artifacts, StatsBase
+using PGFPlotsX, CSV, DataFrames, Artifacts, StatsBase, Polynomials
 using JunctionTrees: get_td_soln
 
 push!(
@@ -65,12 +65,35 @@ labels =
 labels_unique = unique(labels) |> sort
 xmax = maximum(df.largest_bag_size) + 1
 
+## ---------------------------------------------------------------------------
+
+# Linear fit of the log speedup
+
+# Select rows (problems) that have a 'largest bag size' greater than 10
+
+min_largest_bag_size = 9
+df_fit = df[df.largest_bag_size .>= min_largest_bag_size, :]
+
+xs = repeat(df_fit.largest_bag_size, 4)
+ys = vcat(
+  df_fit.libdai_ti_speedup,
+  df_fit.merlin_ti_speedup,
+  df_fit.jtv1_ti_speedup,
+  df_fit.jtv2_ti_speedup
+) .|> log
+
+f = Polynomials.fit(xs, ys, 1) # degree = 1
+
+x_range = range(start = min_largest_bag_size, stop = maximum(df_fit.largest_bag_size), length = 100)
+
+## ---------------------------------------------------------------------------
+
 @pgf tp = Axis(
   {
     #"axis background/.style" = { fill = "gray!10" },
-    "axis line style" = "black!60",
-    "every axis label/.append style" = "black!60",
-    "every tick label/.append style" =  "black!60",
+    "axis line style" = "black!100",
+    "every axis label/.append style" = "black!100",
+    "every tick label/.append style" =  "black!100",
     # title="TensorInference.jl Speedup",
     xmin = 0,
     xmax = xmax,
@@ -121,7 +144,7 @@ xmax = maximum(df.largest_bag_size) + 1
       legend_columns = 3,
       at = Coordinate(0.51, -0.4),
       anchor = "south",
-      text = "black!60",
+      text = "black!100",
       draw = "none",
       fill = "none",
       font = raw"\footnotesize",
@@ -134,7 +157,7 @@ xmax = maximum(df.largest_bag_size) + 1
       scatter,
       "only marks",
       "scatter src" = "explicit symbolic",
-      "legend image post style" = "black!60", "legend style" = {text = "black!60", font = raw"\footnotesize"},
+      "legend image post style" = "black!100", "legend style" = {text = "black!100", font = raw"\footnotesize"},
     },
     Table(
       {
@@ -193,31 +216,61 @@ xmax = maximum(df.largest_bag_size) + 1
       label=labels,
     ),
   ),
-  HLine({ dashed, black }, 1), # See: https://kristofferc.github.io/PGFPlotsX.jl/v1/examples/convenience/
+  Plot(
+    {
+      black,
+      no_markers,
+      dashed,
+    },
+    Table(
+      x=x_range,
+      y=exp.(f.(x_range)),
+    ),
+  ),
+  HLine({ dashed, gray }, 1), # See: https://kristofferc.github.io/PGFPlotsX.jl/v1/examples/convenience/
   Legend(labels_unique),
   # Library legend (manually made with LaTeX code. See: https://kristofferc.github.io/PGFPlotsX.jl/v1/examples/latex/)
   [raw"\node ",
     {
-      text = "black!60",
-      draw = "black!60",
+      text = "black!100",
+      draw = "black!100",
       fill = "white",
       font = raw"\scriptsize",
       # pin = "outlier"
     },
     " at ",
     Coordinate(5.5, 30000), # warning: hardcoded!
-    raw"{\shortstack[l] { $\textcolor{c01}{\blacksquare}$ libDAI \\ $\textcolor{c02}{\blacksquare}$ Merlin \\ $\textcolor{c03}{\blacksquare}$ JunctionTrees.jl-v1  \\ $\textcolor{c04}{\blacksquare}$ JunctionTrees.jl-v2}};"
+    raw"{\shortstack[l] { $\textcolor{c01}{\blacksquare}$ libDAI \\ $\textcolor{c02}{\blacksquare}$ Merlin \\ $\textcolor{c03}{\blacksquare}$ JunctionTrees.jl-v1  \\ $\textcolor{c04}{\blacksquare}$ JunctionTrees.jl-v2 \\ $\textcolor{black}{\tikz[baseline=0.2cm] \draw[dash pattern=on 1pt off 1pt] (0,0) -- (0.7,0);}$ $f = \exp(0.34x - 3.8)$}};"
   ]
 )
-
-println("Geometric mean of the speedup: $(geomean(vcat(df.libdai_ti_speedup, df.merlin_ti_speedup, df.jtv1_ti_speedup, df.jtv2_ti_speedup)))")
-println("Geometric mean of the speedup of the last 10 problems: $(geomean(vcat(last(df.libdai_ti_speedup, 10), last(df.merlin_ti_speedup, 10), last(df.jtv1_ti_speedup, 10), last(df.jtv2_ti_speedup, 10))))")
 
 output_file = joinpath(dirname(data_file), "performance-evaluation.svg")
 pgfsave(output_file, tp; include_preamble=true, dpi=150)
 
 output_file = joinpath(dirname(data_file), "performance-evaluation.tex")
 pgfsave(output_file, tp; include_preamble=true, dpi=150)
+
+println(
+  "Geometric mean of the speedup: $(
+    geomean(vcat(
+      df.libdai_ti_speedup,
+      df.merlin_ti_speedup,
+      df.jtv1_ti_speedup,
+      df.jtv2_ti_speedup
+    ))
+  )"
+)
+
+println(
+  "Geometric mean of the speedup of the last 10 problems: $(
+    geomean(vcat(
+      last(df.libdai_ti_speedup, 10),
+      last(df.merlin_ti_speedup, 10),
+      last(df.jtv1_ti_speedup, 10),
+      last(df.jtv2_ti_speedup, 10)
+    ))
+  )"
+)
 
 # DEBUG
 display(tp)
