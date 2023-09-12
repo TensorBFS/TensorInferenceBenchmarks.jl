@@ -52,8 +52,7 @@ df =
   x -> sort(x, [:largest_bag_size, :nvars, :nbags]) |> # sort the rows based on the largest bag size
   x -> transform(x, [:libdai, :TensorInference] => (./) => :libdai_ti_speedup) |>
   x -> transform(x, [:merlin, :TensorInference] => (./) => :merlin_ti_speedup) |>
-  x -> transform(x, [:JunctionTrees_v1, :TensorInference] => (./) => :jtv1_ti_speedup) |>
-  x -> transform(x, [:JunctionTrees_v2, :TensorInference] => (./) => :jtv2_ti_speedup)
+  x -> transform(x, [:JunctionTrees_v1, :TensorInference] => (./) => :jtv1_ti_speedup)
 
 labels =
   df.problem |>
@@ -72,12 +71,11 @@ xmax = maximum(df.largest_bag_size) + 1
 min_largest_bag_size = 9
 df_fit = df[df.largest_bag_size .>= min_largest_bag_size, :]
 
-xs = repeat(df_fit.largest_bag_size, 4)
+xs = repeat(df_fit.largest_bag_size, 3)
 ys = vcat(
   df_fit.libdai_ti_speedup,
   df_fit.merlin_ti_speedup,
   df_fit.jtv1_ti_speedup,
-  df_fit.jtv2_ti_speedup
 ) .|> log
 
 f = Polynomials.fit(xs, ys, 1) # degree = 1
@@ -98,7 +96,7 @@ x_range = range(start = min_largest_bag_size, stop = maximum(df_fit.largest_bag_
     xlabel = "Largest cluster size",
     xmajorgrids = true,
     ymin = 0,
-    ymax = 1000000,
+    ymax = 100000,
     ymode = "log",
     ytick = [1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5],
     ymajorgrids = true,
@@ -200,22 +198,6 @@ x_range = range(start = min_largest_bag_size, stop = maximum(df_fit.largest_bag_
   ),
   Plot(
     {
-      c04,
-      scatter,
-      "only marks",
-      "scatter src" = "explicit symbolic",
-    },
-    Table(
-      {
-        meta = "label"
-      },
-      x=df.largest_bag_size,
-      y=df.jtv2_ti_speedup,
-      label=labels,
-    ),
-  ),
-  Plot(
-    {
       black,
       no_markers,
       dashed,
@@ -237,8 +219,8 @@ x_range = range(start = min_largest_bag_size, stop = maximum(df_fit.largest_bag_
       # pin = "outlier"
     },
     " at ",
-    Coordinate(5.5, 30000), # warning: hardcoded!
-    raw"{\shortstack[l] { $\textcolor{c01}{\blacksquare}$ libDAI \\ $\textcolor{c02}{\blacksquare}$ Merlin \\ $\textcolor{c03}{\blacksquare}$ JunctionTrees.jl-v1  \\ $\textcolor{c04}{\blacksquare}$ JunctionTrees.jl-v2 \\ $\textcolor{black}{\tikz[baseline=0.2cm] \draw[dash pattern=on 1pt off 1pt] (0,0) -- (0.7,0);}$ $f = \exp(0.34x - 3.8)$}};"
+    Coordinate(5.5, 10000), # warning: hardcoded!
+    raw"{\shortstack[l] { $\textcolor{c01}{\blacksquare}$ libDAI \\ $\textcolor{c02}{\blacksquare}$ Merlin \\ $\textcolor{c03}{\blacksquare}$ JunctionTrees.jl \\ $\textcolor{black}{\tikz[baseline=0.25cm] \draw[dash pattern=on 2pt off 1.5pt] (0,0) -- (0.7,0);}$ $f = \exp(0.4x - 4.2)$}};"
   ]
 )
 
@@ -254,7 +236,6 @@ println(
       df.libdai_ti_speedup,
       df.merlin_ti_speedup,
       df.jtv1_ti_speedup,
-      df.jtv2_ti_speedup
     ))
   )"
 )
@@ -265,7 +246,6 @@ println(
       last(df.libdai_ti_speedup, 10),
       last(df.merlin_ti_speedup, 10),
       last(df.jtv1_ti_speedup, 10),
-      last(df.jtv2_ti_speedup, 10)
     ))
   )"
 )
