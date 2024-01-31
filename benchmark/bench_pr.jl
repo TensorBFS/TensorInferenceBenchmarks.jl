@@ -6,7 +6,7 @@ using Artifacts
 
 const SUITE = BenchmarkGroup()
 
-problem = problem_from_artifact("uai2014", "MAP", "Promedas", 70)
+problem = problem_from_artifact("uai2014", "PR", "Pedigree", 11)
 
 tn = TensorNetworkModel(
   read_model(problem);
@@ -14,7 +14,7 @@ tn = TensorNetworkModel(
   evidence = read_evidence(problem),
 )
 
-SUITE["map"] = @benchmarkable most_probable_config(tn)
+SUITE["pr"] = @benchmarkable probability(tn) |> first |> log10
 
 end  # module
 BenchMap.SUITE

@@ -6,19 +6,35 @@ using Artifacts
 
 const SUITE = BenchmarkGroup()
 
-problem = read_uai_problem("Promedus_14")
-optimizer = TreeSA(ntrials = 1, niters = 2, βs = 1:0.1:40)
+problem = problem_from_artifact("uai2014", "MMAP", "Segmentation", 12)
+model = read_model(problem)
+optimizer = TreeSA(ntrials=1, niters=2, βs=1:0.1:40)
+evidence = read_evidence(problem)
 
-# Does not marginalize any var
-mmap1 = MMAPModel(problem; marginalized = Int[], optimizer)
+mmap1 = MMAPModel(
+  model;
+  optimizer,
+  evidence,
+  queryvars = read_queryvars(problem),
+)
 SUITE["mmap-1"] = @benchmarkable maximum_logp(mmap1)
 
-# Marginalizes all vars
-mmap2 = MMAPModel(problem; marginalized = collect(1:(problem.nvars)), optimizer)
+# Does not marginalize any var
+mmap2 = MMAPModel(
+  model;
+  optimizer,
+  evidence,
+  queryvars = collect(1:(model.nvars)),
+)
 SUITE["mmap-2"] = @benchmarkable maximum_logp(mmap2)
 
-# Does not optimize over open vertices
-mmap3 = MMAPModel(problem; marginalized = [2, 4, 6], optimizer)
+# Marginalizes all vars
+mmap3 = MMAPModel(
+  model;
+  optimizer,
+  evidence,
+  queryvars = Int[],
+)
 SUITE["mmap-3"] = @benchmarkable most_probable_config(mmap3)
 
 end  # module
