@@ -1,22 +1,23 @@
-using TensorInference
-using Test, Documenter, Pkg
+using Test, TensorInference, Documenter, Pkg
 
-artifacts_toml = "Artifacts.toml"
-artifacts = Pkg.Artifacts.select_downloadable_artifacts(artifacts_toml)
-for name in keys(artifacts)
-    ensure_artifact_installed(name, artifacts[name], artifacts_toml)
-end
-
-@testset "inference" begin
-    include("inference.jl")
+@testset "MAR" begin
+    include("mar.jl")
 end
 
 @testset "MAP" begin
-    include("maxprob.jl")
+    include("map.jl")
 end
 
 @testset "MMAP" begin
     include("mmap.jl")
+end
+
+@testset "PR" begin
+    include("pr.jl")
+end
+
+@testset "sampling" begin
+    include("sampling.jl")
 end
 
 using CUDA
